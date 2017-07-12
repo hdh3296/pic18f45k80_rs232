@@ -156,24 +156,20 @@ void LoadCom1buf_Textout(const char *buf)
 
 
 
-void LoadCom1buf_StartLCDCmd(const char *buf)
+void LoadCom1buf_StartLCDCmd(unsigned char *buf)
 {
 	char i, j;
 
+	// 초기화 
 	for (i=0; i<MAX_PACKET; i++)
 	{
 		com1_buf[i] = 0;
 	}	
-
-	j = 0;	
-	com1_buf[j++] = '$';
 	
 	for (i=0; buf[i]!=0; i++)
 	{
-		com1_buf[i+j] = buf[i];
+		com1_buf[i] = buf[i];
 	}
-
-	com1_buf[i+j] = '#';
 
 	SetCom1TxEnable();
 	LCD_DELAY();
@@ -513,58 +509,7 @@ bit check_collision(int startx, int starty, int width, int heigh, int x, int y)
 }
 
 
-void GetXY_Atoi(int *x, int *y)
-{
-	char i,k,m,ind;	
-	
-	*x = 0;
-	k = 0;
-	ind = 5;
-	for (i=0; Com1RxBuffer[ind+i]!=','; i++)
-		k++;	
 
-	
-	if (k == 1)
-	{
-		*x = (Com1RxBuffer[ind] - '0'); 
-	}
-	else if (k == 2)
-	{
-		*x = (Com1RxBuffer[ind] - '0') * 10; 
-		*x = *x + (Com1RxBuffer[ind+1] - '0');
-	}
-	else if (k == 3)
-	{
-		*x = (Com1RxBuffer[ind] - '0') * 100; 
-		*x = *x + (Com1RxBuffer[ind+1] - '0') * 10;
-		*x = *x + (Com1RxBuffer[ind+2] - '0');
-	}	
-
-	
-	*y = 0;
-	m = k;
-	k = 0;
-	ind = 5+m+1;
-	for (i=0; Com1RxBuffer[ind+i]!='#'; i++)
-		k++;	
-	
-	if (k == 1)
-	{
-		*y = (Com1RxBuffer[ind] - '0'); 
-	}
-	else if (k == 2)
-	{
-		*y = (Com1RxBuffer[ind] - '0') * 10; 
-		*y = *y + (Com1RxBuffer[ind+1] - '0');
-	}
-	else if (k == 3)
-	{
-		*y = (Com1RxBuffer[ind] - '0') * 100; 
-		*y = *y + (Com1RxBuffer[ind+1] - '0') * 10;
-		*y = *y + (Com1RxBuffer[ind+2] - '0');
-	}	
-	
-}
 
 void ChkArea(int x, int y)
 {
@@ -607,31 +552,6 @@ void ChkArea(int x, int y)
 	if (check_collision(320,60,60,60,x,y))
 	{
 		newKeyScan[0] = 0x80;
-	}
-}
-
-void ChkRxTouch(void)
-{
-	char c;
-	int x, y;
-
-	GetXY_Atoi(&x, &y);	
-	
-	c = Com1RxBuffer[3];
-
-	if (c == '1')
-	{
-		if (!bTouchPress)
-		{
-			bTouchPress = TRUE;
-			ChkArea(x, y);
-		}
-
-	}
-	else
-	{
-		bTouchPress = FALSE;
-		newKeyScan[0] = 0x0;		
 	}
 }
 
@@ -987,12 +907,12 @@ void main(void)
 	{ 		
         CLRWDT();
 
-		//LoadCom1buf_StartLCDCmd("s,4");
-	
+		
 		if(Com1RxStatus == RX_GOOD)
 		{
 			Com1RxStatus = RTX_CHK;
 			LED_RX = !LED_RX; 	
+			LoadCom1buf_StartLCDCmd(Com1RxBuffer);
 		}
 		
 	 
