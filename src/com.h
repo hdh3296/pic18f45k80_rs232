@@ -23,11 +23,11 @@ extern  void 	Interrupt_COM1Rx(void);
 extern	void	Com1TxStart(void);
 
 
-#define RUNLED 			LATC5	//0
-#define RXLED       	LATC4 	//0
-#define TXLED       	LATD3	//0
+#define LED_RUN 			LATC5	//0
+#define LED_RX       	LATC4 	//0
+#define LED_TX       	LATD3	//0
 
-#define TX_EN       	LATD2	//0
+#define TX485_EN       	LATD2	//0
 
 
 
@@ -67,8 +67,9 @@ extern	void	Com1TxStart(void);
 
 
 #define			COM1_MAX_TX_BUF		100
-#define			COM1_MAX_RX_BUF		30
+#define			COM1_MAX_RX_BUF		10
 unsigned char	Com1RxBuffer[COM1_MAX_RX_BUF];
+unsigned char 	cntRx = 0;
 
 
 

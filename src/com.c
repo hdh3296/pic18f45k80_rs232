@@ -121,26 +121,22 @@ void Interrupt_COM1Rx(void)
 {
 
    	unsigned char   buf;
-	static unsigned char cntRx = 0;
+	
+	if (RCREG == 0x01)	cntRx = 0;
+
 
    	buf = RCREG;		
 
-	if (cntRx < COM1_MAX_RX_BUF - 1)
-	cntRx++;	
-	Com1RxBuffer[cntRx] = buf;			
-
-
-	if (buf == '$')
-	{
-		Init_Com1RxBuffer();
+	if (cntRx < COM1_MAX_RX_BUF - 1) {
+		cntRx++;
+		Com1RxBuffer[cntRx] = buf;
 		
-		cntRx = 0;
-		Com1RxBuffer[cntRx] = '$';			
 	}
-	else if (buf == '#')
-	{
+	else{
 		Com1RxStatus = RX_GOOD;
-	}		
+	}
+				
+	
  
 
 }

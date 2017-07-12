@@ -962,13 +962,7 @@ void main(void)
     Timer0Init(); 
 	UserBaudRate();
     init_comms();
-	Can1RxSid=0;
-	Can1RxEid=0;
-
-    Can1Init();
-
     ei();
-
 
 	MainTimer=0;
 	msec100=0;
@@ -978,114 +972,28 @@ void main(void)
 	RCIE=1;
 
 	TRISD5=0;
-	TX_EN=0;
+	TX485_EN=0;
 
 	Com1RxStatus=RTX_CHK; 
-
-
-	next = 0;
-	bEndTestLCDMode = FALSE;
-    do
-	{
-		switch (next)
-		{
-		case 0:
-			LoadCom1buf_StartLCDCmd("s,4");
-			LoadCom1buf_ColorSetCmd("255,255,255");
-			//LoadCom1buf_RectCmd("0,0,480,272,1"); // JUTF43
-			LoadCom1buf_RectCmd("0,0,800,480,1"); // JUTF70
-			LoadCom1buf_ImLoadCmd("1,Floor_1.bmp");
-			LoadCom1buf_ImLoadCmd("2,Floor_2.bmp");
-			LoadCom1buf_ImLoadCmd("3,Floor_3.bmp");
-			LoadCom1buf_ImLoadCmd("4,Floor_4.bmp");
-			LoadCom1buf_ImLoadCmd("5,Floor_5.bmp");
-			LoadCom1buf_ImLoadCmd("6,Floor_6.bmp");
-			LoadCom1buf_ImLoadCmd("7,Floor_7.bmp");
-			LoadCom1buf_ImLoadCmd("8,Floor_8.bmp");			
-			LoadCom1buf_ImLoadCmd("101,up.bmp");
-			LoadCom1buf_ImLoadCmd("102,down.bmp");
-			LoadCom1buf_ImLoadCmd("103,stop.bmp");
-			
-			LoadCom1buf_ImLoadCmd("151,touch_off_1.bmp");			
-			LoadCom1buf_ImLoadCmd("152,touch_off_2.bmp");
-			LoadCom1buf_ImLoadCmd("153,touch_off_3.bmp");			
-			LoadCom1buf_ImLoadCmd("154,touch_off_4.bmp");
-			LoadCom1buf_ImLoadCmd("155,touch_off_5.bmp");			
-			LoadCom1buf_ImLoadCmd("156,touch_off_6.bmp");
-			LoadCom1buf_ImLoadCmd("157,touch_off_7.bmp");			
-			LoadCom1buf_ImLoadCmd("158,touch_off_8.bmp");
-			
-			LoadCom1buf_ImLoadCmd("201,touch_on_1.bmp");
-			LoadCom1buf_ImLoadCmd("202,touch_on_2.bmp");
-			LoadCom1buf_ImLoadCmd("203,touch_on_3.bmp");
-			LoadCom1buf_ImLoadCmd("204,touch_on_4.bmp");
-			LoadCom1buf_ImLoadCmd("205,touch_on_5.bmp");
-			LoadCom1buf_ImLoadCmd("206,touch_on_6.bmp");
-			LoadCom1buf_ImLoadCmd("207,touch_on_7.bmp");
-			LoadCom1buf_ImLoadCmd("208,touch_on_8.bmp");
-
-			next = 1;
-			break;
-
-		case 1:
-			if (TestLCD_ImgDraw())
-				bEndTestLCDMode = TRUE;
-			
-			break;
-		} 
-		
-        CLRWDT();
-    }while(bEndTestLCDMode == FALSE);
 
 	TXIE = 0;
 	strPt = 0;
 
-	IdPt = (LocalNumber * HOST_DATA_RECOD) + RCV_DATA;
-
-	bTouchPress = FALSE;
+	LED_TX 	= 0;
+	LED_RX 	= 1;
+	LED_RUN = 0;
 
     while (1)
-	{    
-		
+	{ 		
         CLRWDT();
 
-		
+		//LoadCom1buf_StartLCDCmd("s,4");
 	
-		// LCD 다시 그리기 
-		if (msgCANRx_EleData_Updated)
-		{
-			msgCANRx_EleData_Updated = FALSE;
-			IsLoadedCom1Buf_EleData();		
-			TXLED = !TXLED; 			
-		}	
-
-
-		// Com1 수신 
 		if(Com1RxStatus == RX_GOOD)
 		{
 			Com1RxStatus = RTX_CHK;
-			RXLED = !RXLED; 	
-			
-			if(Com1RxBuffer[1] == 't')
-			{
-				ChkRxTouch();
-			}
+			LED_RX = !LED_RX; 	
 		}
-
-        if (CanTxAct)
-        {
-            if (IsKeyLoaded(SelHostAdr))
-            {
-                Can1TxData(); 
-            }
-
-            CanTxAct = 0;
-        }
-		
-		IdPt = (SelHostAdr * HOST_DATA_RECOD) + RCV_DATA;
-		ChkKeyButtonPush();		
-		
-		ButtonOff();		
 		
 	 
 		if(Com1RxStatus == TX_SET){
@@ -1095,7 +1003,7 @@ void main(void)
 				Com1TxThisPt=0;
 				Com1TxCnt=0;
 				TXIE=0;
-				TX_EN=0;
+				TX485_EN=0;
 			}
 		}
     }
@@ -1119,39 +1027,20 @@ void interrupt isr(void)
             msec100=0;
 			MainTimer++;
 			if(MainTimer > 5){
-				RUNLED=!RUNLED;
+				LED_RUN=!LED_RUN;
 			}				
         } 
-		
-		Virt_RxGoodTimer++;
-		if (Virt_RxGoodTimer > 100)
-		{
-			Virt_RxGoodTimer = 0;
-			bVirt_RxGood = TRUE;
-		}
-
-		LcdDelay++;
-
-		KeyScantimer[0]++;
-        KeyScantimer[1]++;
-        KeyScantimer[2]++;
-        KeyScantimer[3]++;
     }
-
-    if(PIR5 > 0)
-	{
-        Can1Interrupt();
-    }	
-
+	
 	if((TXIE)&&(TXIF))										/*transmit interrupt routine*/
 	{
         TXIF=0;
         Interrupt_COM1Tx();
 	}	
 
-	if((RCIE)&&(RCIF))										/*receive interrupt routine*/
+	if( (RCIE)&&(RCIF) )										/*receive interrupt routine*/
 	{
-        RCIF=0;
+        RCIF = 0;
 		if(Com1RxStatus != TX_SET)
 		{
 			Com1SerialTime = 0;
