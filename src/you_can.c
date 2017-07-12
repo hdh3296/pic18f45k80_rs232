@@ -6,7 +6,7 @@
 
 #include "you_can.h" 
 #include "com.h" 
-#include "crt_45k80.h" 
+#include "cpu18f4480.h" 
 #include "MyUtil.h" 
 #include "you_can_oldProtocol.h" 
 

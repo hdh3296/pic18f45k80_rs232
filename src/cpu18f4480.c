@@ -3,7 +3,7 @@
 #include    <pic18.h>
  
 //#include        "cpu18f4480.h"
-#include        "crt_45k80.h"
+#include        "cpu18f4480.h"
 
 
 
