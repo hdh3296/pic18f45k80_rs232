@@ -146,6 +146,7 @@ extern	unsigned 	long	Com1BaudRate;
 
 extern void Init_Com1RxBuffer(void);
 extern void Interrupt_COM1Tx(void);
+void serial_interrupt();
 
 
 

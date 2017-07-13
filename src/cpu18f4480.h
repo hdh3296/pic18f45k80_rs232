@@ -34,6 +34,7 @@ unsigned char TX_DATA_CNT = 0;
 #define	TXEN	TXEN1
 #define	SPEN	SPEN1
 #define	FERR	FERR1
+#define	CREN	CREN1
 
 #define     MSEC_H    0xfc
 #define     MSEC_L    0x18
@@ -90,7 +91,6 @@ bit bTouchPress;
 bit bEndTestLCDMode;
 
 extern void SetCom1TxEnable(void);
-extern void LCD_DELAY(void);
 extern bit Draw_ButtonOff_3F(void);
 extern bit Draw_ButtonOff_2F(void);
 extern bit Draw_ButtonOff_1F(void);
@@ -100,6 +100,11 @@ extern int IsKeyLoaded(unsigned char);
 extern unsigned char  ChkCarKeyLoad(unsigned char);
 extern unsigned char SetHighFloor(unsigned char);
 extern unsigned char SetLowFloor(unsigned char);
+
+extern  void  Initial(void);
+extern  void  Timer0Init(void);
+
+
 
 #endif
 

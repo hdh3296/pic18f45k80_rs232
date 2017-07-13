@@ -4,6 +4,7 @@
 #include    "com.h"
 #include    "serial.h"
 #include    "MyUtil.h"
+#include  	"cpu18f4480.h"
 
 ///////////////////////
 #define     ASCTOHEX(x) ((x <= '9') ? (x - '0') : (x - '7')) 
@@ -80,12 +81,38 @@ void Interrupt_COM1Rx(void)
 	else{
 		Com1RxStatus = RX_GOOD;
 	}
-				
-	
- 
-
 }
 
+void serial_interrupt()
+{
+	if((TXIE)&&(TXIF))										/*transmit interrupt routine*/
+	{
+        TXIF=0;
+        Interrupt_COM1Tx();
+	}	
+
+	if( (RCIE)&&(RCIF) )										/*receive interrupt routine*/
+	{
+        RCIF = 0;
+		if(Com1RxStatus != TX_SET)
+		{
+			Com1SerialTime = 0;
+        	Interrupt_COM1Rx();
+		}
+	}	
+
+
+	if(OERR) {
+      	TXEN=0;
+      	TXEN=1;
+      	SPEN=0;
+      	SPEN=1;
+		CREN=0;
+    }
+
+	if( !CREN)	CREN=1;
+
+}
 
 
 

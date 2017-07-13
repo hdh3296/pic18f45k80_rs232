@@ -5,19 +5,11 @@
 #include        "com.h"
 #include        "cpu18f4480.h"
 
-
-
-
-
 unsigned    char  	MainTimer=0;
 unsigned    char	msec100=0;
 
 bit bVirt_RxGood = 0;
 unsigned int Virt_RxGoodTimer = 0;
-
-
-extern  void  Timer0Init(void);
-extern  void  Initial(void);
 
 
 void    PortInit(void)
@@ -70,32 +62,6 @@ void    UserBaudRate(void)
 }
 
 
-void  Serial2Check(void)
-{
-	unsigned char i;
-
-//    if(Com1RxStatus==RX_GOOD){ 
-	if (bVirt_RxGood)
-	{
-		bVirt_RxGood = 0;
-	
-		for (i=0; i<(Virt_Com1RxBuffer[3]+4); i++)	Can1TxBuf[i] = Virt_Com1RxBuffer[i];
-		Can1TxDataTxPointer=2;	
-		Can1TxDataTotalCnt= (Virt_Com1RxBuffer[3]+4);
-    }             
-
-              
-}
-
-
-
-
-
-
-
-	
-
-
 void LoadCom1buf_StartLCDCmd(unsigned char *buf)
 {
 	char i, j;
@@ -112,39 +78,7 @@ void LoadCom1buf_StartLCDCmd(unsigned char *buf)
 	}
 
 	SetCom1TxEnable();
-	LCD_DELAY();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-void LCD_DELAY(void)
-{
-	unsigned int i;
-	unsigned int val;
-	
-	val = 2000;
-	for(i=0; i<val; i++);
-}
-
-
-
-
-
-
-
-
-
-
 
 
 void SetCom1TxEnable(void)
@@ -153,17 +87,12 @@ void SetCom1TxEnable(void)
 	TXREG = *ptStr;
 	ptStr++;
 	TXIE = TRUE; 
+	LED_TX = !LED_TX;
 }
 
-
-
-
-
-
-
-
-
-
+/*
+// Rx 데이타를 받으면 받은 데이타를 Tx로 다시 돌려 보내는 프로그램이다. 	 
+*/
 void main(void)
 {
 	unsigned char i;	
@@ -200,8 +129,7 @@ void main(void)
         CLRWDT();
 
 		
-		if(Com1RxStatus == RX_GOOD)
-		{
+		if(Com1RxStatus == RX_GOOD){
 			Com1RxStatus = RTX_CHK;
 			LED_RX = !LED_RX; 	
 			LoadCom1buf_StartLCDCmd(Com1RxBuffer);
@@ -221,12 +149,12 @@ void main(void)
     }
 }
 
-
+	
 
 void interrupt isr(void)
 {
    
-    if( TMR0IF )
+    if( TMR0IF )		
     {    
         TMR0IF = 0 ;
         TMR0L=MSEC_L;
@@ -243,34 +171,8 @@ void interrupt isr(void)
 			}				
         } 
     }
-	
-	if((TXIE)&&(TXIF))										/*transmit interrupt routine*/
-	{
-        TXIF=0;
-        Interrupt_COM1Tx();
-	}	
 
-	if( (RCIE)&&(RCIF) )										/*receive interrupt routine*/
-	{
-        RCIF = 0;
-		if(Com1RxStatus != TX_SET)
-		{
-			Com1SerialTime = 0;
-        	Interrupt_COM1Rx();
-		}
-	}	
-
-
-	if(OERR) {
-      	TXEN=0;
-      	TXEN=1;
-      	SPEN=0;
-      	SPEN=1;
-		CREN1=0;
-    }
-
-	if( !CREN1)	CREN1=1;
-	
+	serial_interrupt();	
 }
 
 
